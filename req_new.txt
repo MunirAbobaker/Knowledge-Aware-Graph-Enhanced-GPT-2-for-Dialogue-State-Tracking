@@ -1,0 +1,7 @@
+
+The Python interpreter is no longer available using the generic name 'python'.
+Please specify either 'python2' or 'python3' to select the interpreter you wish
+to use.  For additional information, please see:
+
+   https://arc.umich.edu/software/python2-eol/
+
