@@ -17,13 +17,13 @@ import torch.optim as optim
 from torch.nn.modules.loss import CrossEntropyLoss
 from transformers import GPT2PreTrainedModel, GPT2Model
 # BertTokenizer, BertPreTrainedModel, BertModel, GPT2PreTrainedModel, GPT2Model
-from transformers.modeling_outputs import TokenClassifierOutput
+# from transformers.modeling_outputs import TokenClassifierOutput
 
 # from transformers.modeling_bert import BertPredictionHeadTransform
 # from transformers.modeling_outputs import CausalLMOutputWithPastAndCrossAttentions
 # from transformers import CausalLMOutputWithPastAndCrossAttentions
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-from transformers.generation_logits_process import (
+from transformers import (
     LogitsProcessorList,
 )
 import warnings

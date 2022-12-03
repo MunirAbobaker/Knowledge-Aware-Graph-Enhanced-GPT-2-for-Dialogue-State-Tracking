@@ -15,15 +15,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.nn.modules.loss import CrossEntropyLoss
-from transformers import GPT2PreTrainedModel, GPT2Model
-# BertTokenizer, BertPreTrainedModel, BertModel, GPT2PreTrainedModel, GPT2Model
-from transformers.modeling_outputs import TokenClassifierOutput
+from transformers import GPTNeoXPreTrainedModel, GPTNeoXModel
+# from transformers.modeling_outputs import TokenClassifierOutput
 
 # from transformers.modeling_bert import BertPredictionHeadTransform
 # from transformers.modeling_outputs import CausalLMOutputWithPastAndCrossAttentions
 # from transformers import CausalLMOutputWithPastAndCrossAttentions
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-from transformers.generation_logits_process import (
+from transformers import (
     LogitsProcessorList,
 )
 import warnings
@@ -78,7 +77,7 @@ class CustomCausalLMOutputWithPastAndCrossAttentions(ModelOutput):
 from .graph_model import GraphModel
 
 
-class KAGEModel(GPT2PreTrainedModel):
+class KAGEModel(GPTNeoXPreTrainedModel):
     """
     The Model Class for KAGE
     """
@@ -88,14 +87,14 @@ class KAGEModel(GPT2PreTrainedModel):
         super().__init__(config)
         self.config = config
         self.sys_config = sys_config
-        self.transformer = GPT2Model(config)
+        self.transformer = GPTNeoXModel(config)
         self.lm_head = nn.Linear(config.n_embd * 2, config.vocab_size, bias=False)
         self.reset_output_size = False
         self.init_weights()
         # self.decode_layer = nn.Linear(config.n_embd * 2, config.vocab_size, bias=False)
         self.graph_model = GraphModel(self.sys_config)
         self.dropout = nn.Dropout(0.1)
-        # Get embedding layer of GPT2
+        # Get embedding layer of GPTXNeo
         self.embedding_layer = self.transformer.wte
         self.cls_loss_linear = nn.Linear(config.n_embd, config.n_embd, bias=True)
 
