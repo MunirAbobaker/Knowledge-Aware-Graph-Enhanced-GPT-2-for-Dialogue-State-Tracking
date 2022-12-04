@@ -95,7 +95,7 @@ class KAGEModel(GPTNeoXPreTrainedModel):
         self.graph_model = GraphModel(self.sys_config)
         self.dropout = nn.Dropout(0.1)
         # Get embedding layer of GPTXNeo
-        self.embedding_layer = self.transformer.wte
+        self.embedding_layer = self.transformer.embed_in
         self.cls_loss_linear = nn.Linear(config.n_embd, config.n_embd, bias=True)
 
     def _tie_or_clone_weights(self, output_embeddings, input_embeddings):

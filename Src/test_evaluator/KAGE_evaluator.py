@@ -32,7 +32,7 @@ import json
 from test_evaluator.base_evaluator import BaseEvaluator
 
 # Customize
-from transformers import GPT2TokenizerFast, GPT2Config, AutoTokenizer, AutoConfig, GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2TokenizerFast, GPT2Config, AutoTokenizer, AutoConfig, GPT2LMHeadModel, GPT2Tokenizer, GPTNeoXTokenizerFast
 from torch.nn.modules.loss import CrossEntropyLoss
 from utils.metrics_manager import MetricsManager
 from tqdm import tqdm
@@ -55,7 +55,15 @@ class KAGEEvaluator(BaseEvaluator):
 
         # Load tokenizer from training
         tokenizer_path = os.path.join(self.config.saved_model_path, 'tokenizer')
-        self.tokenizer = GPT2Tokenizer.from_pretrained(tokenizer_path)
+
+        if config.model_config.base_model == 'gpt2':
+            self.tokenizer = GPT2Tokenizer.from_pretrained(tokenizer_path)
+        elif config.model_config.base_model == 'gpt_neox':
+            self.tokenizer = GPTNeoXTokenizerFast.from_pretrained(tokenizer_path)
+        else:
+            logger.print(config.model_config.base_model, "is not a good evaluator! Please check.", mode="warning")
+            return
+
         logger.print('loaded tokenizer from', tokenizer_path)
 
         # self.SPECIAL_TOKENS = data_loader.SPECIAL_TOKENS
@@ -106,12 +114,24 @@ class KAGEEvaluator(BaseEvaluator):
         logger.print("Finished initialization, loading model....")
 
         # Initialize models
-        from models.KAGE_GPT2.KAGE_GPT2 import KAGEModel
+        if config.model_config.base_model == 'gpt2':
+            from models.KAGE_GPT2.KAGE_GPT2 import KAGEModel
+        elif config.model_config.base_model == 'gpt_neox':
+            from models.KAGE_GPTNeoX.KAGE_GPTNeoX import KAGEModel
+        else:
+            logger.print(config.model_config.base_model, "is not a base type! Please check.", mode="warning")
+            return
 
-        self.model_config = AutoConfig.from_pretrained('gpt2')
-        self.model = KAGEModel.from_pretrained('gpt2',
+        self.model_config = AutoConfig.from_pretrained(config.model_config.base_model)
+        self.model = KAGEModel.from_pretrained(config.model_config.base_model,
                                                     config=self.model_config,
                                                     sys_config=self.config)  # GPT2LMHeadModel
+
+        # TODO: Alex commented the code here out. I think I can replace 'gpt2' with config.model_config.base_model
+        # self.model_config = AutoConfig.from_pretrained('gpt2')
+        # self.model = KAGEModel.from_pretrained('gpt2',
+        #                                             config=self.model_config,
+        #                                             sys_config=self.config)  # GPT2LMHeadModel
         self.model.resize_token_embeddings(len(self.tokenizer))
 
         # self.model.init_batch_classifiers(len(list_num_classifiers), list_num_classifiers, self.config.device)
