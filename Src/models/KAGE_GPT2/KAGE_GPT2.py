@@ -129,7 +129,16 @@ class KAGEModel(GPT2PreTrainedModel):
     def get_output_embeddings(self):
         return self.lm_head
 
-    def prepare_inputs_for_generation(self, input_ids, past=None, **kwargs):
+    def prepare_inputs_for_generation(self, input_ids, past=None, 
+                                      # added these default parameter 
+                                      # in attempt to fix compatability
+                                      pre_input_ids=None,
+                                      pre_attention_mask = None,
+                                      pre_ds_indice=None,
+                                      bos_id=None,
+                                      sep_token_id=None,
+                                      ds_ids=None,
+                                      **kwargs):
         # only last token for inputs_ids if past is defined in kwargs
         if past:
             input_ids = input_ids[:, -1].unsqueeze(-1)
