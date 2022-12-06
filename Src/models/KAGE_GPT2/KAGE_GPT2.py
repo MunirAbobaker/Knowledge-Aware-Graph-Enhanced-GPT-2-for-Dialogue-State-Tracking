@@ -98,6 +98,31 @@ class KAGEModel(GPT2PreTrainedModel):
         # Get embedding layer of GPT2
         self.embedding_layer = self.transformer.wte
         self.cls_loss_linear = nn.Linear(config.n_embd, config.n_embd, bias=True)
+    
+    @staticmethod
+    def _init_sequence_length_for_generation(
+        input_ids: torch.LongTensor, max_length: int
+    ) -> Tuple[torch.Tensor, torch.Tensor, int]:
+        unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
+        sequence_lengths = input_ids.new(input_ids.shape[0]).fill_(max_length)
+
+        cur_len = input_ids.shape[-1]
+        return sequence_lengths, unfinished_sequences, cur_len
+
+    @staticmethod
+    def _update_seq_length_for_generation(
+        sequence_lengths: torch.LongTensor,
+        unfinished_sequences: torch.LongTensor,
+        cur_len: int,
+        is_eos_in_next_token: torch.BoolTensor,
+    ) -> Tuple[torch.LongTensor, torch.LongTensor]:
+        # check if sentence is not finished yet
+        is_sent_unfinished = unfinished_sequences.mul(is_eos_in_next_token.long()).bool()
+
+        # update sentence length
+        sequence_lengths = sequence_lengths.masked_fill(is_sent_unfinished, cur_len)
+        unfinished_sequences = unfinished_sequences.mul((~is_eos_in_next_token).long())
+        return sequence_lengths, unfinished_sequences
 
     def _tie_or_clone_weights(self, output_embeddings, input_embeddings):
         """Tie or clone module weights depending of whether we are using TorchScript or not"""

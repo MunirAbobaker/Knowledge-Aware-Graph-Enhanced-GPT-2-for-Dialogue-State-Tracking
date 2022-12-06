@@ -368,7 +368,7 @@ class KAGEEvaluator(BaseEvaluator):
 
                         #	output = generation(model, batch) # same speed as .generate() api above
                         output_ids = output[0].cpu().numpy().tolist()
-
+                        print("Output debug " + output_ids)
                         # Save attentions
                         attentions_data = None
                         if self.config.test_output_attention:
