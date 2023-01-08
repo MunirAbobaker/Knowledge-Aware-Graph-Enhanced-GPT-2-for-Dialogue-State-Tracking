@@ -133,3 +133,7 @@ dmypy.json
 /Experiments
 /Data
 /Data_TB
+
+newvenv/
+cEnv/
+py310/

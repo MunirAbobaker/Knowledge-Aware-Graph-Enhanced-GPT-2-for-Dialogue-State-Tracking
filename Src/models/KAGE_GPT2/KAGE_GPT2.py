@@ -17,13 +17,13 @@ import torch.optim as optim
 from torch.nn.modules.loss import CrossEntropyLoss
 from transformers import GPT2PreTrainedModel, GPT2Model
 # BertTokenizer, BertPreTrainedModel, BertModel, GPT2PreTrainedModel, GPT2Model
-from transformers.modeling_outputs import TokenClassifierOutput
+# from transformers.modeling_outputs import TokenClassifierOutput
 
 # from transformers.modeling_bert import BertPredictionHeadTransform
 # from transformers.modeling_outputs import CausalLMOutputWithPastAndCrossAttentions
 # from transformers import CausalLMOutputWithPastAndCrossAttentions
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-from transformers.generation_logits_process import (
+from transformers import (
     LogitsProcessorList,
 )
 import warnings
@@ -98,6 +98,31 @@ class KAGEModel(GPT2PreTrainedModel):
         # Get embedding layer of GPT2
         self.embedding_layer = self.transformer.wte
         self.cls_loss_linear = nn.Linear(config.n_embd, config.n_embd, bias=True)
+    
+    @staticmethod
+    def _init_sequence_length_for_generation(
+        input_ids: torch.LongTensor, max_length: int
+    ) -> Tuple[torch.Tensor, torch.Tensor, int]:
+        unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
+        sequence_lengths = input_ids.new(input_ids.shape[0]).fill_(max_length)
+
+        cur_len = input_ids.shape[-1]
+        return sequence_lengths, unfinished_sequences, cur_len
+
+    @staticmethod
+    def _update_seq_length_for_generation(
+        sequence_lengths: torch.LongTensor,
+        unfinished_sequences: torch.LongTensor,
+        cur_len: int,
+        is_eos_in_next_token: torch.BoolTensor,
+    ) -> Tuple[torch.LongTensor, torch.LongTensor]:
+        # check if sentence is not finished yet
+        is_sent_unfinished = unfinished_sequences.mul(is_eos_in_next_token.long()).bool()
+
+        # update sentence length
+        sequence_lengths = sequence_lengths.masked_fill(is_sent_unfinished, cur_len)
+        unfinished_sequences = unfinished_sequences.mul((~is_eos_in_next_token).long())
+        return sequence_lengths, unfinished_sequences
 
     def _tie_or_clone_weights(self, output_embeddings, input_embeddings):
         """Tie or clone module weights depending of whether we are using TorchScript or not"""
@@ -129,7 +154,16 @@ class KAGEModel(GPT2PreTrainedModel):
     def get_output_embeddings(self):
         return self.lm_head
 
-    def prepare_inputs_for_generation(self, input_ids, past=None, **kwargs):
+    def prepare_inputs_for_generation(self, input_ids, past=None, 
+                                      # added these default parameter 
+                                      # in attempt to fix compatability
+                                      pre_input_ids=None,
+                                      pre_attention_mask = None,
+                                      pre_ds_indice=None,
+                                      bos_id=None,
+                                      sep_token_id=None,
+                                      ds_ids=None,
+                                      **kwargs):
         # only last token for inputs_ids if past is defined in kwargs
         if past:
             input_ids = input_ids[:, -1].unsqueeze(-1)

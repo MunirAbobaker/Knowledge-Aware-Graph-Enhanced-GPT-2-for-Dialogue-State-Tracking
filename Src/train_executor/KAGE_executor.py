@@ -118,7 +118,13 @@ class KAGEExecutor(BaseExecutor):
         # self.list_num_classifiers = list_num_classifiers
         # self.model_config.pad_token_id = self.tokenizer.convert_tokens_to_ids('<PAD>')
         # self.model_config.vocab_size = len(self.tokenizer)
-        from models.KAGE_GPT2.KAGE_GPT2 import KAGEModel
+        if config.model_config.base_model == 'gpt2':
+            from models.KAGE_GPT2.KAGE_GPT2 import KAGEModel
+        elif config.model_config.base_model == 'gpt_neox':
+            from models.KAGE_GPTNeoX.KAGE_GPTNeoX import KAGEModel
+        else:
+            logger.print(config.model_config.base_model, "is not a base type! Please check.", mode="warning")
+            return
 
         self.model = KAGEModel.from_pretrained(config.model_config.base_model,
                                                     config=self.model_config,

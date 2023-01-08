@@ -71,7 +71,7 @@ local warmup_steps = 0;
   "train": {
     "epochs":train_epochs,
     "batch_size":train_batch_size,
-    "lr": lr,S
+    "lr": lr,
     "graph_lr": graph_lr,
     "adam_epsilon": adam_epsilon,
     "load_epoch":-1,

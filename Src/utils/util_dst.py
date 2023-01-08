@@ -13,6 +13,7 @@ from utils.fix_label import fix_general_label_error
 EXPERIMENT_DOMAINS = ["hotel", "train", "restaurant", "attraction", "taxi"]
 
 # NOTE: if you change the relative path of slot_list.json, modify the path below
+print(os.getcwd())
 with open('../Data/MultiWOZ/dst/slot_list.json') as f:
 	all_slots = json.load(f)
 
